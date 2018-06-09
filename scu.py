@@ -75,7 +75,7 @@ class SCU():
 
 class SerialParser():
 	def __init__(self):
-		self.ser = serial.Serial(port="/dev/ttyS0", baudrate=9600, timeout = .1
+		self.ser = serial.Serial(port="/dev/ttyS0", baudrate=9600, timeout = .01
                    , bytesize=serial.EIGHTBITS, stopbits=2, rtscts=True)
 		self.scu = SCU()
 		self.poll()
@@ -94,11 +94,14 @@ class SerialParser():
 				while response_counter <100: #Limit to 100 characters recieved 
 					recieved = self.ser.read()
 					
-					if recieved != ProtcolMessage.CR.value:
+					if recieved != ProtcolMessage.CR.value and recieved != ProtcolMessage.ACK.value :
 						command_buffer.append(recieved)
 						response_counter += 1	
 					else:
-						command = self.parse_command(command_buffer)
+						if recieved == ProtcolMessage.ACK.value:
+							command = ProtcolMessage.ACK.value
+						else:
+							command = self.parse_command(command_buffer)
 						self.execute_command(command)
 						print command_buffer 
 						break
