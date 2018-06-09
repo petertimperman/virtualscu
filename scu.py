@@ -40,6 +40,7 @@ class CommandCode(Enum):
 
 class SCU():
 	def __init__(self):
+		self.units=["W","D","N"]
 		self.unit = "W" #wavenumbers
 		self.position = 15000 #Start at 15000
 		self.status = "S" #Start as stopped 
@@ -72,7 +73,11 @@ class SCU():
 		self.status = Status.STOPPED
 	def to_status(self):
 		return self.status+self.unit+str(self.position)
-
+	def change_unit(self):
+		next_index = self.units.index(self.unit) +1 
+		if next_index == 3:
+			next_index = 0
+		self.unit = self.units[next_index]
 class SerialParser():
 	def __init__(self):
 		self.ser = serial.Serial(port="/dev/ttyS0", baudrate=9600, timeout = .01
@@ -119,6 +124,15 @@ class SerialParser():
 		if command ==  ProtcolMessage.ACK.value or command == "0":
 			print "Ack recieved"
 			message = self.scu.to_status()+"CS" + ProtcolMessage.CR.value
-			print message
-			self.ser.write(message)
+			self.return_status()
+		elif command = "U":
+			self.scu.change_unit()
+			self.return_status()
+		else:
+			self.return_error()
+			
+	def return_status(self):
+		self.ser.write(self.scu.to_status()+"CS" + ProtcolMessage.CR.value)
+	def return_error(self):
+		self.ser.write("EE00000"+ProtcolMessage.CR.value)
 ser_parse = SerialParser()
