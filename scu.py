@@ -57,14 +57,14 @@ class SCU():
 				time.sleep(.1) 
 		self.status = Status.STOPPED
 	
-	def jog_forward(self)
+	def jog_forward(self):
 		self.status = Status.JOGGINGFORWARD
 		while new_position != self.position and self.status != Status.STOPPED:
 				self.position  += 1
 				time.sleep(.1) 
 		self.status = Status.STOPPED
 
-	def jog_reverse(self)
+	def jog_reverse(self):
 		self.status = Status.JOGGINGREVERSE
 		while new_position != self.position and self.status != Status.STOPPED:
 				self.position  -= 1
@@ -104,6 +104,6 @@ class SerialParser():
 			command = command_string[0]
 			return command
 
-	def execute_command(command, message=None)
-		if command = ProtcolMessage.ACK.value:
+	def execute_command(command, message=None):
+		if command ==  ProtcolMessage.ACK.value:
 			ser.write(self.scu.to_status+ProtcolMessage.CR.value)
