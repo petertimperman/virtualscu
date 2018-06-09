@@ -14,7 +14,7 @@ class ProtcolMessage(Enum):
     NULL = chr(128)  # <Null>: 0 + 128
     ACK = chr(134)  # 6 + 128
     CR = chr(141)  # 13 + 128
-
+    #CR = chr(13)
 
 class CommandCode(Enum):
     SCAN = "G"
@@ -71,7 +71,7 @@ class SCU():
 				time.sleep(.1) 
 		self.status = Status.STOPPED
 	def to_status(self):
-		return self.status.value+self.unit+self.position
+		return self.status+self.unit+str(self.position)
 
 class SerialParser():
 	def __init__(self):
@@ -111,9 +111,11 @@ class SerialParser():
 			print command
 			return command
 
-	def execute_command(command, message=None):
+	def execute_command(self,command, message=None):
 		print "Command-->"+str(command)
 		if command ==  ProtcolMessage.ACK.value or command == "0":
 			print "Ack recieved"
-			self.ser.write(self.scu.to_status+ProtcolMessage.CR.value)
+			message = self.scu.to_status()+"CS" + ProtcolMessage.CR.value
+			print message
+			self.ser.write(message)
 ser_parse = SerialParser()
