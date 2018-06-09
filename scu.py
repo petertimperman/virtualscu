@@ -86,12 +86,12 @@ class SerialParser():
 			ser.flushInput()
 			
 			if null_count == 45:
-				ser.write(ProtcolMessage.ENQ+ProtcolMessage.CR)
+				ser.write(ProtcolMessage.ENQ.value+ProtcolMessage.CR.value)
 				response_counter = 0
 				command_buffer = ""
 				while response_counter <100: #Limit to 100 characters recieved 
 					recieved = ser.read()
-					if recieved != ProtcolMessage.CR:
+					if recieved != ProtcolMessage.CR.value:
 						command_buffer += recieved
 					else:
 						self.execute_command(self.parse_command(recieved))
@@ -105,5 +105,5 @@ class SerialParser():
 			return command
 
 	def execute_command(command, message=None)
-		if command = ProtcolMessage.ACK:
-			ser.write(self.scu.to_status+ProtcolMessage.CR)
+		if command = ProtcolMessage.ACK.value:
+			ser.write(self.scu.to_status+ProtcolMessage.CR.value)
