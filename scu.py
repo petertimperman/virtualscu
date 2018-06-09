@@ -71,40 +71,49 @@ class SCU():
 				time.sleep(.1) 
 		self.status = Status.STOPPED
 	def to_status(self):
-		return self.status+self.unit+self.position
+		return self.status.value+self.unit+self.position
 
 class SerialParser():
-	def __init__(self, scu):
-		ser = serial.Serial(port="COM1", baudrate=9600,
-                    bytesize=serial.EIGHTBITS, stopbits=2, rtscts=True)
+	def __init__(self):
+		self.ser = serial.Serial(port="/dev/ttyS0", baudrate=9600, timeout = .1
+                   , bytesize=serial.EIGHTBITS, stopbits=2, rtscts=True)
 		self.scu = SCU()
 		self.poll()
 
 	def poll(self):
+		null_count = 0 
 		while True:
-			null_count = 0
-			ser.flushInput()
+			
+			self.ser.flushInput()
 			
 			if null_count == 45:
-				ser.write(ProtcolMessage.ENQ.value+ProtcolMessage.CR.value)
+				print "Writing enq"
+				self.ser.write(ProtcolMessage.ENQ.value)
 				response_counter = 0
-				command_buffer = ""
+				command_buffer = list()
 				while response_counter <100: #Limit to 100 characters recieved 
-					recieved = ser.read()
+					recieved = self.ser.read()
+					
 					if recieved != ProtcolMessage.CR.value:
-						command_buffer += recieved
+						command_buffer.append(recieved)
+						response_counter += 1	
 					else:
-						self.execute_command(self.parse_command(recieved))
+						command = self.parse_command(command_buffer)
+						self.execute_command(command)
+						print command_buffer 
 						break
 				null_count = 0
 			else:
-				ser.write(ProtcolMessage.NULL+ProtcolMessage.CR)
+				self.ser.write(ProtcolMessage.NULL.value)
 				null_count += 1
-	def parse_command(self, command_string):
-			command = command_string[0]
+	def parse_command(self, command_buffer):
+			command = command_buffer[0]
+			print command
 			return command
 
 	def execute_command(command, message=None):
-		if command ==  ProtcolMessage.ACK.value:
-			ser.write(self.scu.to_status+ProtcolMessage.CR.value)
+		print "Command-->"+str(command)
+		if command ==  ProtcolMessage.ACK.value or command == "0":
+			print "Ack recieved"
+			self.ser.write(self.scu.to_status+ProtcolMessage.CR.value)
 ser_parse = SerialParser()
