@@ -70,24 +70,40 @@ class SCU():
 				self.position  -= 1
 				time.sleep(.1) 
 		self.status = Status.STOPPED
+	def to_status(self):
+		return self.status+self.unit+self.position
 
 class SerialParser():
-	def __init__(self):
+	def __init__(self, scu):
 		ser = serial.Serial(port="COM1", baudrate=9600,
                     bytesize=serial.EIGHTBITS, stopbits=2, rtscts=True)
-		
+		scu = SCU()
+		self.poll()
 
 	def poll(self):
 		while True:
 			null_count = 0
 			ser.flushInput()
-			command_buffer = ""
+			
 			if null_count == 45:
-				ser
-			ser.write(ProtcolMessage.ENQ)
+				ser.write(ProtcolMessage.ENQ+ProtcolMessage.CR)
+				response_counter = 0
+				command_buffer = ""
+				while response_counter <100: #Limit to 100 characters recieved 
+					recieved = ser.read()
+					if recieved != ProtcolMessage.CR:
+						command_buffer += recieved
+					else:
+						self.execute_command(self.parse_command(recieved))
+						break
+				null_count = 0
+			else:
+				ser.write(ProtcolMessage.NULL+ProtcolMessage.CR)
+				null_count += 1
+	def parse_command(self, command_string):
+			command = command_string[0]
+			return command
 
-
-
-
-
-
+	def execute_command(command, message=None)
+		if command = ProtcolMessage.ACK:
+			ser.write(self.scu.to_status+ProtcolMessage.CR)
