@@ -77,7 +77,7 @@ class SerialParser():
 	def __init__(self, scu):
 		ser = serial.Serial(port="COM1", baudrate=9600,
                     bytesize=serial.EIGHTBITS, stopbits=2, rtscts=True)
-		scu = SCU()
+		self.scu = SCU()
 		self.poll()
 
 	def poll(self):
@@ -107,3 +107,4 @@ class SerialParser():
 	def execute_command(command, message=None):
 		if command ==  ProtcolMessage.ACK.value:
 			ser.write(self.scu.to_status+ProtcolMessage.CR.value)
+ser_parse = SerialParser()
