@@ -1,6 +1,7 @@
 from enum import Enum 
 import time
 import serial
+from threading 
 
 class Status(Enum):
 	STOPPED = 'S'
@@ -60,19 +61,27 @@ class SCU():
 	
 	def jog_forward(self):
 		self.status = Status.JOGGINGFORWARD
-		while new_position != self.position and self.status != Status.STOPPED:
+		while new_position != self.position and self.status != Status.STOPPED and getatrr(self.jog_forward_thread, "forward_run", True):
 				self.position  += 1
 				time.sleep(.1) 
 		self.status = Status.STOPPED
 
 	def jog_reverse(self):
 		self.status = Status.JOGGINGREVERSE
-		while new_position != self.position and self.status != Status.STOPPED:
+		while new_position != self.position and self.status != Status.STOPPED and getatrr(self.jog_reverse_thread, "reverse_run", True):
 				self.position  -= 1
 				time.sleep(.1) 
 		self.status = Status.STOPPED
 	def to_status(self):
 		return self.status+self.unit+str(self.position)
+	def stop(self):
+		if hasattr(self, "jog_reverse_thread") and self.jog_reverse_thread is not None:
+			self.jog_reverse_thread.reverse_run = False
+			self.jog_reverse_thread.join()
+		if hasattr(self, "jog_forward_thread") and self.jog_forward_thread is not None:
+			self.jog_forward_thread.forward_run = False
+			self.jog_forward_thread.join()
+		self.status = Status.STOPPED
 	def change_unit(self):
 		next_index = self.units.index(self.unit) +1 
 		if next_index == 3:
@@ -128,9 +137,21 @@ class SerialParser():
 		elif command = "U":
 			self.scu.change_unit()
 			self.return_status()
+		elif command = "F":
+			self.scu.jog_forward_thread = threading.Thread(target = lambda: self.scu.jog_forward())
+			self.scu.jog_forward_thread.start()
+			self.return_status()
+		elif command = "R":
+			self.scu.jog_reverse_thread = threading.Thread(target = lambda: self.scu.jog_reverse())
+			self.scu.jog_reverse_thread.start()
+			self.return_status()
+		elif command = "S":
+			self.scu.stop()
+			self.return_status()
 		else:
 			self.return_error()
-			
+		
+
 	def return_status(self):
 		self.ser.write(self.scu.to_status()+"CS" + ProtcolMessage.CR.value)
 	def return_error(self):
